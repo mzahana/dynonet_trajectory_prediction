@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # In[Settings]
     lr = 1e-3
-    num_iter = 10000
+    num_iter = 20000
     msg_freq = 100
     # n_fit = 500
 
@@ -110,6 +110,9 @@ if __name__ == '__main__':
         print(f"\nTrain time: {train_time/60.:.2f} minutes")
     else:
         print(f"\nTrain time: {train_time/3600.:.2f} hours")
+
+    print("Training iterations:", num_iter)
+    print("Last loss:", loss.item())
 
     # In[Save model]
     model_name = 'drone_trajecrory_model'

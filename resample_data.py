@@ -2,6 +2,7 @@ import csv
 import argparse
 import numpy as np
 import pandas as pd
+import os
 
 
 
@@ -77,7 +78,7 @@ def main():
     
 
 if __name__== "__main__":
-    inp_filename = ('original_datasets/indoor_forward_5_davis_with_gt/groundtruth.txt')
+    inp_filename = ('original_datasets/indoor_forward_3_davis_with_gt/groundtruth.txt')
 
     output_dir = "resampled_100ms_dataset"
 
@@ -95,7 +96,7 @@ if __name__== "__main__":
     else:
         print("Directory already exists:", directory_path)
 
-    out_filename = (directory_path+'/indoor_forward_5_davis_with_gt.txt')
+    out_filename = (directory_path+'/indoor_forward_3_davis_with_gt.txt')
     dt = 0.1
     processData(inp_filename, out_filename, dt)
     

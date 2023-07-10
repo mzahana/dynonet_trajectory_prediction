@@ -5,13 +5,17 @@ if __name__ == '__main__':
     ds = []
     # Extract data
     try:
-        ds.append(np.load("dynonet_datasets/indoor_forward_3_davis.npz"))
+        f_path="dynonet_datasets/indoor_forward_3_davis.npz"
+        ds.append(np.load(f_path))
+        print("Read:", f_path)
     except Exception as e:
         print("Error in reading dataset: {}".format(e))
         exit(1)
 
     try:
-        ds.append(np.load("dynonet_datasets/indoor_forward_5_davis.npz"))
+        f_path = "dynonet_datasets/indoor_forward_5_davis.npz"
+        ds.append(np.load(f_path))
+        print("Read:", f_path)
     except Exception as e:
         print("Error in reading dataset: {}".format(e))
         exit(1)

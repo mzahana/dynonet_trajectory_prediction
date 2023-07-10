@@ -21,7 +21,7 @@ import csv
 import os
 
 # Load the CSV file into a NumPy array
-filename = "indoor_forward_5_davis_with_gt.txt"
+filename = "indoor_forward_3_davis_with_gt.txt"
 file_path = os.path.join("resampled_100ms_dataset", filename)
 out_file=""
 dt = np.array(0.1)
@@ -111,7 +111,7 @@ else:
     print("Directory already exists:", directory_path)
 
 
-output_file = directory_path+"/indoor_forward_5_davis.npz"
+output_file = directory_path+"/indoor_forward_3_davis.npz"
 np.savez(output_file, pos_dataset=pos_dataset, pos_in=pos_in, pos_out=pos_out, vel_in=vel_in, vel_out=vel_out, dt=dt)
 print("Arrays saved to", output_file)
 

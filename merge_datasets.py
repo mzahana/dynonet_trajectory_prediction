@@ -20,6 +20,30 @@ if __name__ == '__main__':
         print("Error in reading dataset: {}".format(e))
         exit(1)
 
+    try:
+        f_path = "dynonet_datasets/indoor_45_4_davis.npz"
+        ds.append(np.load(f_path))
+        print("Read:", f_path)
+    except Exception as e:
+        print("Error in reading dataset: {}".format(e))
+        exit(1)
+
+    try:
+        f_path = "dynonet_datasets/indoor_forward_7_davis.npz"
+        ds.append(np.load(f_path))
+        print("Read:", f_path)
+    except Exception as e:
+        print("Error in reading dataset: {}".format(e))
+        exit(1)
+
+    try:
+        f_path = "dynonet_datasets/indoor_45_9_davis.npz"
+        ds.append(np.load(f_path))
+        print("Read:", f_path)
+    except Exception as e:
+        print("Error in reading dataset: {}".format(e))
+        exit(1)
+
     # Merge datasets
     if len(ds)==0:
         print("ERROR: No datasets to merge")

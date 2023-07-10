@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # In[Settings]
     lr = 1e-3
-    num_iter = 20000
+    num_iter = 30000
     msg_freq = 100
     # n_fit = 500
 
@@ -47,9 +47,14 @@ if __name__ == '__main__':
     u = loaded_data["vel_in"]
     y = loaded_data["vel_out"]
 
-    # Number of input data points
+    # Number of trajectories points (samples/sec * points)
     u_N = u.shape[1]
     y_N = y.shape[1]
+
+    # Number of training points
+    num_pts = u.shape[0]
+
+    print("number of training points:", num_pts)
 
     # Model blocks
     F1_factor=1

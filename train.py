@@ -22,8 +22,14 @@ from dynonet.static import MimoStaticNonLinearity, MimoStaticNonLinearity
 import time
 import dynonet.metrics
 import matplotlib.pyplot as plt
+import argparse
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Trains a Dynonet network using trajectory dataset.")
+    parser.add_argument("input_file", help="Path to the .npz file.")
+    args = parser.parse_args()
+
     # In[Set seed for reproducibility]
     np.random.seed(0)
     torch.manual_seed(0)
@@ -36,7 +42,7 @@ if __name__ == '__main__':
 
     # Extract data
     try:
-        loaded_data = np.load("merged_traj_datasets.npz")
+        loaded_data = np.load(args.input_file)
     except Exception as e:
         print("Error in reading dataset: {}".format(e))
         exit(1)

@@ -66,11 +66,18 @@ if __name__ == '__main__':
     print("number of training points:", num_pts)
 
     # Model blocks
-    F1_factor=1
-    G1 = MimoLinearDynamicalOperator(u_N, u_N*F1_factor, n_b=2, n_a=2, n_k=1)
-    # Static sandwitched non-linearity
-    F1 = MimoStaticNonLinearity(u_N*F1_factor, y_N*F1_factor, activation='tanh')
+    # F1_factor=1
+    # G1 = MimoLinearDynamicalOperator(u_N, u_N*F1_factor, n_b=2, n_a=2, n_k=1)
+    # # Static sandwitched non-linearity
+    # F1 = MimoStaticNonLinearity(u_N*F1_factor, y_N*F1_factor, activation='tanh')
     # G2 = MimoLinearDynamicalOperator(y_N*F1_factor, y_N, n_b=2, n_a=2, n_k=0)
+
+    factor=5
+    F1 = MimoStaticNonLinearity(u_N, y_N*factor, activation='tanh')
+    F2 = MimoStaticNonLinearity(y_N*factor, y_N, activation='tanh')
+    G1 = MimoLinearDynamicalOperator(y_N, y_N, n_b=2, n_a=3, n_k=0)
+    F3 = MimoStaticNonLinearity(y_N, y_N*factor, activation='tanh')
+    F4 = MimoStaticNonLinearity(y_N*factor, y_N, activation='tanh')
 
     # Load identified model parameters
     # model_name = 'drone_trajecrory_model'
@@ -81,16 +88,30 @@ if __name__ == '__main__':
 
     # Model structure
     def model(u_in):
-        y_lin_1 = G1(u_in)
-        y_nl = F1(y_lin_1)
+        # y_lin_1 = G1(u_in)
+        # y_nl = F1(y_lin_1)
         # y_pred = G2(y_nl)
+
+        y_nl_1 = F1(u_in)
+        y_nl_2 = F2(y_nl_1)
+        y_lin = G1(y_nl_2)
+        y_nl_3 = F3(y_lin)
+        y_nl_4 = F4(y_nl_3)
         # y_hat = torch.cumsum(v_hat, dim=1) * ts
-        return y_nl
+        return y_nl_4
 
     # In[Optimizer]
+    # optimizer = torch.optim.Adam([
+    #     {'params': G1.parameters(), 'lr': lr},
+    #     {'params': F1.parameters(), 'lr': lr},
+    # ], lr=lr)
+
     optimizer = torch.optim.Adam([
-        {'params': G1.parameters(), 'lr': lr},
         {'params': F1.parameters(), 'lr': lr},
+        {'params': F2.parameters(), 'lr': lr},
+        {'params': G1.parameters(), 'lr': lr},
+        {'params': F3.parameters(), 'lr': lr},
+        {'params': F4.parameters(), 'lr': lr},
     ], lr=lr)
 
     # In[Prepare tensors]
@@ -134,9 +155,19 @@ if __name__ == '__main__':
         if not os.path.exists(model_folder):
             os.makedirs(model_folder)
 
-        torch.save(G1.state_dict(), os.path.join(model_folder, "G1.pkl"))
-        torch.save(F1.state_dict(), os.path.join(model_folder, "F1.pkl"))
+        # torch.save(G1.state_dict(), os.path.join(model_folder, "G1.pkl"))
+        # torch.save(F1.state_dict(), os.path.join(model_folder, "F1.pkl"))
         # torch.save(G2.state_dict(), os.path.join(model_folder, "G2.pkl"))
+
+        # torch.save(F1.state_dict(), os.path.join(model_folder, "F1.pkl"))
+        # torch.save(G1.state_dict(), os.path.join(model_folder, "G1.pkl"))
+        # torch.save(F2.state_dict(), os.path.join(model_folder, "F2.pkl"))
+
+        torch.save(F1.state_dict(), os.path.join(model_folder, "F1.pkl"))
+        torch.save(F2.state_dict(), os.path.join(model_folder, "F2.pkl"))
+        torch.save(G1.state_dict(), os.path.join(model_folder, "G1.pkl"))
+        torch.save(F3.state_dict(), os.path.join(model_folder, "F3.pkl"))
+        torch.save(F4.state_dict(), os.path.join(model_folder, "F4.pkl"))
 
     # In[Detach]
     y_hat_np = y_hat.detach().numpy()[0, :, 0]

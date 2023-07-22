@@ -64,11 +64,22 @@ if __name__ == '__main__':
     u_N = u.shape[1]
     y_N = y.shape[1]
 
-    # Model blocks
-    G1 = MimoLinearDynamicalOperator(u_N, u_N, n_b=2, n_a=2, n_k=1)
-    # Static sandwitched non-linearity
-    F1 = MimoStaticNonLinearity(u_N, y_N, activation='tanh')
-    G2 = MimoLinearDynamicalOperator(y_N, y_N, n_b=2, n_a=2, n_k=0)
+    # # Model blocks
+    # G1 = MimoLinearDynamicalOperator(u_N, u_N, n_b=2, n_a=2, n_k=1)
+    # # Static sandwitched non-linearity
+    # F1 = MimoStaticNonLinearity(u_N, y_N, activation='tanh')
+    # G2 = MimoLinearDynamicalOperator(y_N, y_N, n_b=2, n_a=2, n_k=0)
+
+    # F1 = MimoStaticNonLinearity(u_N, y_N, activation='tanh')
+    # G1 = MimoLinearDynamicalOperator(y_N, y_N, n_b=2, n_a=3, n_k=0)
+    # F2 = MimoStaticNonLinearity(y_N, y_N, activation='tanh')
+
+    factor=5
+    F1 = MimoStaticNonLinearity(u_N, y_N*factor, activation='tanh')
+    F2 = MimoStaticNonLinearity(y_N*factor, y_N, activation='tanh')
+    G1 = MimoLinearDynamicalOperator(y_N, y_N, n_b=2, n_a=3, n_k=0)
+    F3 = MimoStaticNonLinearity(y_N, y_N*factor, activation='tanh')
+    F4 = MimoStaticNonLinearity(y_N*factor, y_N, activation='tanh')
 
     # # Load identified model parameters
     model_name = 'drone_trajecrory_model'
@@ -76,15 +87,24 @@ if __name__ == '__main__':
     model_folder = args.model_dir
     G1.load_state_dict(torch.load(os.path.join(model_folder, "G1.pkl")))
     F1.load_state_dict(torch.load(os.path.join(model_folder, "F1.pkl")))
-    G2.load_state_dict(torch.load(os.path.join(model_folder, "G2.pkl")))
+    F2.load_state_dict(torch.load(os.path.join(model_folder, "F2.pkl")))
+    F3.load_state_dict(torch.load(os.path.join(model_folder, "F3.pkl")))
+    F4.load_state_dict(torch.load(os.path.join(model_folder, "F4.pkl")))
+    # G2.load_state_dict(torch.load(os.path.join(model_folder, "G2.pkl")))
 
     # # Model structure
     def model(u_in):
-        y_lin_1 = G1(u_in)
-        y_nl = F1(y_lin_1)
-        y_pred = G2(y_nl)
+        # y_lin_1 = G1(u_in)
+        # y_nl = F1(y_lin_1)
+        # y_pred = G2(y_nl)
+
+        y_nl_1 = F1(u_in)
+        y_nl_2 = F2(y_nl_1)
+        y_lin = G1(y_nl_2)
+        y_nl_3 = F3(y_lin)
+        y_nl_4 = F4(y_nl_3)
         # y_hat = torch.cumsum(v_hat, dim=1) * ts
-        return y_pred
+        return y_nl_4
     
     # # In[Simulate]
     u_fit_torch = torch.tensor(u[None, :, :])
@@ -117,6 +137,11 @@ if __name__ == '__main__':
     # v_hat_z = y[:, 2::3]
 
     i=args.sample_index
+
+    err_v = v_hat[i,:]-y[i,:]
+    err = np.linalg.norm(err_v)
+    print(f"Error of sample {i}: {err}")
+    
     # Initial position, last in the input trajectory
     p0_x = pos_in_tx[i,-1]
     p0_y = pos_in_ty[i,-1]

@@ -115,13 +115,6 @@ if __name__ == '__main__':
     print("v_hat shape: ", v_hat.shape)
     print(f"Ground truth vel_out shape: {y.shape}")
 
-    # In[Plot]
-    # Need to plot 3D trajectpries
-    fig = plt.figure(figsize=(10, 5))
-
-    ax1 = fig.add_subplot(111, projection='3d')
-    ax1.scatter(pos_dataset[:,1], pos_dataset[:,2], pos_dataset[:,3], c='blue', s=1, label='original_trajectory')
-
     # Reshape u_in and y_meas to separate tx, ty, tz
     pos_in_tx = pos_in[:, 0::3]
     pos_in_ty = pos_in[:, 1::3]
@@ -136,13 +129,18 @@ if __name__ == '__main__':
     # v_hat_y = y[:, 1::3]
     # v_hat_z = y[:, 2::3]
 
-    i=args.sample_index
+    error_list = []
+    for s in range(len(v_hat)):
 
-    err_v = v_hat[i,:]-y[i,:]
-    err = np.linalg.norm(err_v)
-    print(f"Error of sample {i}: {err}")
-    
+        # i=args.sample_index
+
+        err_v = v_hat[s,:]-y[s,:]
+        err = np.linalg.norm(err_v)
+        error_list.append(err)
+        # print(f"Error of sample {s}: {err}")
+
     # Initial position, last in the input trajectory
+    i = args.sample_index
     p0_x = pos_in_tx[i,-1]
     p0_y = pos_in_ty[i,-1]
     p0_z = pos_in_tz[i,-1]
@@ -161,6 +159,12 @@ if __name__ == '__main__':
         p0_z +=  dt*v_hat_z[i,j]
         pos_hat_z.append(p0_z)
 
+    # In[Plot]
+    # Need to plot 3D trajectpries
+    fig = plt.figure(figsize=(10, 5))
+
+    ax1 = fig.add_subplot(111, projection='3d')
+    ax1.scatter(pos_dataset[:,1], pos_dataset[:,2], pos_dataset[:,3], c='blue', s=1, label='original_trajectory')
     ax1.scatter(pos_in_tx[i], pos_in_ty[i], pos_in_tz[i], c='black', s=10, label=f"input positions: sequence{i}")
     ax1.scatter(pos_hat_x, pos_hat_y, pos_hat_z, c='red',s=10, label=f"predicted positions: sequence{i}")
 
@@ -169,4 +173,12 @@ if __name__ == '__main__':
     ax1.set_zlabel('Z')
 
     ax1.legend()
+    plt.show()
+
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111)
+    ax2.plot(error_list)
+    ax2.set_xlabel("Index of trajectory sample")
+    ax2.set_ylabel("Norm of error")
+    ax2.set_title("Error with respect to ground truth")
     plt.show()

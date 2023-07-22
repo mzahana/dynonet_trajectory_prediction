@@ -28,7 +28,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Trains a Dynonet network using trajectory dataset.")
     parser.add_argument("input_file", help="Path to the .npz file.")
+    parser.add_argument("-it", "--iterations", type=int, default=10000, help="Number of training iterations")
     args = parser.parse_args()
+    print(f"Traingin data: {args.input_file}")
+    print(f"Number of iterations: {args.iterations}")
 
     # In[Set seed for reproducibility]
     np.random.seed(0)
@@ -36,7 +39,7 @@ if __name__ == '__main__':
 
     # In[Settings]
     lr = 1e-3
-    num_iter = 30000
+    num_iter = args.iterations
     msg_freq = 100
     # n_fit = 500
 
@@ -67,7 +70,7 @@ if __name__ == '__main__':
     G1 = MimoLinearDynamicalOperator(u_N, u_N*F1_factor, n_b=2, n_a=2, n_k=1)
     # Static sandwitched non-linearity
     F1 = MimoStaticNonLinearity(u_N*F1_factor, y_N*F1_factor, activation='tanh')
-    G2 = MimoLinearDynamicalOperator(y_N*F1_factor, y_N, n_b=2, n_a=2, n_k=0)
+    # G2 = MimoLinearDynamicalOperator(y_N*F1_factor, y_N, n_b=2, n_a=2, n_k=0)
 
     # Load identified model parameters
     # model_name = 'drone_trajecrory_model'
@@ -80,15 +83,14 @@ if __name__ == '__main__':
     def model(u_in):
         y_lin_1 = G1(u_in)
         y_nl = F1(y_lin_1)
-        y_pred = G2(y_nl)
+        # y_pred = G2(y_nl)
         # y_hat = torch.cumsum(v_hat, dim=1) * ts
-        return y_pred
+        return y_nl
 
     # In[Optimizer]
     optimizer = torch.optim.Adam([
         {'params': G1.parameters(), 'lr': lr},
         {'params': F1.parameters(), 'lr': lr},
-        {'params': G2.parameters(), 'lr': lr},
     ], lr=lr)
 
     # In[Prepare tensors]
@@ -105,7 +107,7 @@ if __name__ == '__main__':
         y_hat = model(u_fit_torch)
 
         err_fit = y_fit_torch - y_hat
-        loss = torch.mean(err_fit ** 2) * 10
+        loss = torch.mean(err_fit ** 2)
 
         LOSS.append(loss.item())
         if itr % msg_freq == 0:
@@ -134,7 +136,7 @@ if __name__ == '__main__':
 
         torch.save(G1.state_dict(), os.path.join(model_folder, "G1.pkl"))
         torch.save(F1.state_dict(), os.path.join(model_folder, "F1.pkl"))
-        torch.save(G2.state_dict(), os.path.join(model_folder, "G2.pkl"))
+        # torch.save(G2.state_dict(), os.path.join(model_folder, "G2.pkl"))
 
     # In[Detach]
     y_hat_np = y_hat.detach().numpy()[0, :, 0]

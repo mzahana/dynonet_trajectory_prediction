@@ -23,8 +23,16 @@ import time
 import dynonet.metrics
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import argparse
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="test Dynonet.")
+    parser.add_argument("data_path", help="Path to the data stored as .npz .")
+    parser.add_argument("-m", "--model_dir", help="Directory path where the model is saved .")
+    parser.add_argument("-s", "--sample_index", type=int, default=0, help="Index of data sample to test")
+    args = parser.parse_args()
+
     # In[Set seed for reproducibility]
     np.random.seed(0)
     torch.manual_seed(0)
@@ -33,7 +41,7 @@ if __name__ == '__main__':
 
     # Extract data
     try:
-        loaded_data = np.load("indoor_forward_3_davis.npz")
+        loaded_data = np.load(args.data_path)
     except Exception as e:
         print("Error in reading dataset: {}".format(e))
         exit(1)
@@ -65,6 +73,7 @@ if __name__ == '__main__':
     # # Load identified model parameters
     model_name = 'drone_trajecrory_model'
     model_folder = os.path.join("models", model_name)
+    model_folder = args.model_dir
     G1.load_state_dict(torch.load(os.path.join(model_folder, "G1.pkl")))
     F1.load_state_dict(torch.load(os.path.join(model_folder, "F1.pkl")))
     G2.load_state_dict(torch.load(os.path.join(model_folder, "G2.pkl")))
@@ -84,6 +93,7 @@ if __name__ == '__main__':
     # # In[Detach]
     v_hat = v_hat.detach().numpy()[0, :, :]
     print("v_hat shape: ", v_hat.shape)
+    print(f"Ground truth vel_out shape: {y.shape}")
 
     # In[Plot]
     # Need to plot 3D trajectpries
@@ -96,17 +106,17 @@ if __name__ == '__main__':
     pos_in_tx = pos_in[:, 0::3]
     pos_in_ty = pos_in[:, 1::3]
     pos_in_tz = pos_in[:, 2::3]
-
-    # y_meas_tx = y[:, 0::3]
-    # y_meas_ty = y[:, 1::3]
-    # y_meas_tz = y[:, 2::3]
-
-    # Need to compute positions from estimated velocities and dt
+        
     v_hat_x = v_hat[:, 0::3]
     v_hat_y = v_hat[:, 1::3]
     v_hat_z = v_hat[:, 2::3]
 
-    i=300
+    # # ground truth
+    # v_hat_x = y[:, 0::3]
+    # v_hat_y = y[:, 1::3]
+    # v_hat_z = y[:, 2::3]
+
+    i=args.sample_index
     # Initial position, last in the input trajectory
     p0_x = pos_in_tx[i,-1]
     p0_y = pos_in_ty[i,-1]
@@ -115,6 +125,7 @@ if __name__ == '__main__':
     pos_hat_x=[]
     pos_hat_y=[]
     pos_hat_z=[]
+    # Need to compute positions from estimated velocities and dt
     for j in range(len(v_hat_x[i])):
         p0_x += dt*v_hat_x[i,j]
         pos_hat_x.append(p0_x)
